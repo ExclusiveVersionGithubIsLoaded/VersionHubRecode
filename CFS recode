@@ -1,0 +1,151 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Improved Script",
+   LoadingTitle = "Special Force Simulator",
+   LoadingSubtitle = "by Version",
+   Theme = "Ocean",
+})
+
+local espEnabled = false
+local autoAimEnabled = false
+local holdingRMB = false
+local chamsCache = {}
+local giftNames = {"Red Gift2", "Red Gift", "Green Gift", "Blue Gift", "Green Gift2", "Blue Gift2"}
+local maxGifts = 35
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- Обновление ESP
+local function createChams(part)
+    local chams = Instance.new("BoxHandleAdornment")
+    chams.Size = part.Size
+    chams.AlwaysOnTop = true
+    chams.ZIndex = 10
+    chams.Adornee = part
+    chams.Color3 = Color3.new(0, 0.5, 1)
+    chams.Transparency = 0.7
+    chams.Parent = part
+    return chams
+end
+
+local function applyESP()
+    for _, object in pairs(workspace:GetDescendants()) do
+        if object:IsA("Model") and object:FindFirstChild("Humanoid") and object:FindFirstChild("Head") then
+            if object ~= player.Character then
+                for _, part in pairs(object:GetChildren()) do
+                    if part:IsA("BasePart") and not chamsCache[part] then
+                        chamsCache[part] = createChams(part)
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function removeESP()
+    for part, adornment in pairs(chamsCache) do
+        if adornment then
+            adornment:Destroy()
+        end
+    end
+    chamsCache = {}
+end
+
+workspace.DescendantAdded:Connect(function(newDescendant)
+    if espEnabled then
+        task.wait(0.1)
+        if newDescendant:IsA("Model") and newDescendant:FindFirstChild("Humanoid") and newDescendant:FindFirstChild("Head") then
+            if newDescendant ~= player.Character then
+                for _, part in pairs(newDescendant:GetChildren()) do
+                    if part:IsA("BasePart") and not chamsCache[part] then
+                        chamsCache[part] = createChams(part)
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- Телепортация подарков
+local function teleportGifts()
+    local giftFolder = workspace:FindFirstChild("active") and workspace.active:FindFirstChild("Programming")
+    local giftCount = 0
+
+    if giftFolder then
+        for _, gift in pairs(giftFolder:GetChildren()) do
+            if table.find(giftNames, gift.Name) and gift:IsA("BasePart") then
+                gift.CFrame = humanoidRootPart.CFrame + Vector3.new(0, 2 + giftCount, 0)
+                gift.CanCollide = false
+                gift.Anchored = true
+                giftCount += 1
+
+                if giftCount >= maxGifts then
+                    break
+                end
+            end
+        end
+    end
+
+    if giftCount == 0 then
+        Rayfield:Notify({
+            Title = "Нет подарков",
+            Content = "Подарков пока что нет, подождите, и мы точно что-то найдём😖",
+            Duration = 5,
+        })
+    end
+end
+
+-- Телепортация торсов врагов
+local function teleportEnemyTorso()
+    for _, enemy in pairs(workspace:GetDescendants()) do
+        if enemy:IsA("Model") and enemy:FindFirstChild("Humanoid") then
+            local torso = enemy:FindFirstChild("Torso") or enemy:FindFirstChild("UpperTorso")
+            if torso and torso:IsA("BasePart") then
+                torso.CFrame = humanoidRootPart.CFrame + Vector3.new(math.random(-5, 5), 0, math.random(-5, 5))
+                torso.CanCollide = false
+                torso.Anchored = true
+            end
+        end
+    end
+end
+
+-- UI
+local MainTab = Window:CreateTab("Main", 4483362458)
+
+MainTab:CreateToggle({
+   Name = "ESP",
+   CurrentValue = false,
+   Callback = function(value)
+       espEnabled = value
+       if espEnabled then
+           applyESP()
+       else
+           removeESP()
+       end
+   end,
+})
+
+MainTab:CreateToggle({
+    Name = "Auto Aim",
+    CurrentValue = false,
+    Callback = function(Value)
+        autoAimEnabled = Value
+    end,
+})
+
+MainTab:CreateButton({
+   Name = "Телепортировать подарки",
+   Callback = function()
+       teleportGifts()
+   end,
+})
+
+MainTab:CreateButton({
+   Name = "Телепортировать торсы врагов",
+   Callback = function()
+       teleportEnemyTorso()
+   end,
+})
