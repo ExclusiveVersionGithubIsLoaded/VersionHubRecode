@@ -69,7 +69,7 @@ workspace.DescendantAdded:Connect(function(newDescendant)
     end
 end)
 
--- Телепортация подарков
+
 local function teleportGifts()
     local giftFolder = workspace:FindFirstChild("active") and workspace.active:FindFirstChild("Programming")
     local giftCount = 0
@@ -190,14 +190,14 @@ MainTab:CreateToggle({
 })
 
 MainTab:CreateButton({
-   Name = "Телепортировать подарки",
+   Name = "teleport Gifts to player",
    Callback = function()
        teleportGifts()
    end,
 })
 
 MainTab:CreateButton({
-   Name = "Телепортировать торсы врагов",
+   Name = "AutoFarm Enemies",
    Callback = function()
        teleportEnemyTorso()
    end,
