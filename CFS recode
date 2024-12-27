@@ -18,7 +18,7 @@ local player = game.Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
--- Обновление ESP
+
 local function createChams(part)
     local chams = Instance.new("BoxHandleAdornment")
     chams.Size = part.Size
@@ -98,7 +98,7 @@ local function teleportGifts()
     end
 end
 
--- Телепортация торсов врагов
+
 local function teleportEnemyTorso()
     for _, enemy in pairs(workspace:GetDescendants()) do
         if enemy:IsA("Model") and enemy:FindFirstChild("Humanoid") then
@@ -137,29 +137,29 @@ local function aimAtClosestEnemy()
         end
     end
 
-    -- Мгновенное наведение
+    
     if closestEnemy then
         local targetPosition = closestEnemy.Position
         camera.CFrame = CFrame.new(camera.CFrame.Position, targetPosition)
     end
 end
 
--- Слушатель для правой кнопки мыши
+
 game:GetService("UserInputService").InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton2 then -- ПКМ зажата
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then 
         holdingRMB = true
     end
 end)
 
 game:GetService("UserInputService").InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton2 then -- ПКМ отпущена
+    if input.UserInputType == Enum.UserInputType.MouseButton2 then 
         holdingRMB = false
     end
 end)
 
--- Цикл для автонаводки
+
 task.spawn(function()
-    while task.wait(0.03) do -- Частое обновление
+    while task.wait(0.03) do 
         if autoAimEnabled and holdingRMB then
             aimAtClosestEnemy()
         end
