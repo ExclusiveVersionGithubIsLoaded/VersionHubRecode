@@ -1,1 +1,29 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Millionare empire tycoon | Version Hub",
+    LoadingTitle = "Запуск...",
+    LoadingSubtitle = "Жди",
+    ConfigurationSaving = {
+        Enabled = false, 
+        FolderName = nil, 
+        FileName = "Config"
+    },
+    KeySystem = false, 
+})
+
+local Tab = Window:CreateTab("Функции") 
+
+Tab:CreateButton({
+    Name = "inf money (money collector)",
+    Callback = function()
+        for i = 1, 6000 do
+            task.spawn(function()
+                local args = { [1] = 10000000000 }
+                game:GetService("ReplicatedStorage").fewjnfejwb3:FireServer(unpack(args))
+            end)
+        end
+        print("Всё заебись, верс хаб бустит бляха")
+    end,
+})
 
