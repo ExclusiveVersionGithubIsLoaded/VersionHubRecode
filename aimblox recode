@@ -1,0 +1,183 @@
+local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+
+local Window = Fluent:CreateWindow({
+    Title = "Aimblox | Version Hub",
+    SubTitle = "Fluent UI",
+    TabWidth = 160,
+    Size = UDim2.fromOffset(580, 460),
+    Theme = "Dark"
+})
+
+-- Создаём вкладки
+local Tabs = {
+    Movement = Window:AddTab({ Title = "Movement" }),
+    Visual = Window:AddTab({ Title = "Visual" }),
+    Misc = Window:AddTab({ Title = "Misc" }),
+}
+
+-- === Глобальные переменные ===
+local playerSpeed = 16
+local defaultSpeed = 16
+local flySpeed = 1
+local flying = false
+local infiniteJumpEnabled = false
+local espEnabled = false
+_G.HeadSize = 15
+_G.Disabled = true
+
+-- === Movement Tab ===
+Tabs.Movement:AddSlider("WalkSpeed", {
+    Title = "WalkSpeed",
+    Description = "Adjust your walk speed",
+    Default = 16,
+    Min = 1,
+    Max = 150,
+    Rounding = 1,
+    Callback = function(Value)
+        playerSpeed = Value
+        local humanoid = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = playerSpeed
+        end
+    end
+})
+
+Tabs.Movement:AddToggle("Enable WalkSpeed", {
+    Title = "Enable WalkSpeed",
+    Default = false,
+    Callback = function(Value)
+        local humanoid = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if Value then
+            humanoid.WalkSpeed = playerSpeed
+        else
+            humanoid.WalkSpeed = defaultSpeed -- Возвращаем стандартную скорость при отключении
+        end
+    end
+})
+
+Tabs.Movement:AddToggle("Infinite Jump", {
+    Title = "Infinite Jump",
+    Default = false,
+    Callback = function(Value)
+        infiniteJumpEnabled = Value
+    end
+})
+
+game:GetService("UserInputService").JumpRequest:Connect(function()
+    if infiniteJumpEnabled then
+        local humanoid = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+Tabs.Movement:AddSlider("Fly Speed", {
+    Title = "Fly Speed",
+    Description = "Adjust your flying speed",
+    Default = 1,
+    Min = 1,
+    Max = 50,
+    Rounding = 1,
+    Callback = function(Value)
+        flySpeed = Value
+    end
+})
+
+Tabs.Movement:AddToggle("Fly", {
+    Title = "Enable Fly",
+    Default = false,
+    Callback = function(Value)
+        flying = Value
+        local player = game.Players.LocalPlayer
+        local humanoidRootPart = player.Character:WaitForChild("HumanoidRootPart")
+
+        game:GetService("RunService").RenderStepped:Connect(function()
+            if not flying then return end
+            humanoidRootPart.CFrame = humanoidRootPart.CFrame + Vector3.new(0, flySpeed * 0.1, 0)
+        end)
+    end
+})
+
+-- === Visual Tab ===
+local function applyHighlight(player)
+    if player.Character and not player.Character:FindFirstChild("Highlight") then
+        local highlight = Instance.new("Highlight", player.Character)
+        highlight.FillColor = Color3.fromRGB(255, 0, 0)
+        highlight.FillTransparency = 0.5
+    end
+end
+
+local function updateESP()
+    local players = game:GetService("Players")
+
+    -- Подсвечиваем всех существующих игроков
+    for _, player in pairs(players:GetPlayers()) do
+        applyHighlight(player)
+    end
+
+    -- Следим за появлением новых игроков
+    players.PlayerAdded:Connect(function(player)
+        player.CharacterAdded:Connect(function()
+            wait(0.1)
+            applyHighlight(player)
+        end)
+    end)
+end
+
+Tabs.Visual:AddToggle("ESP", {
+    Title = "Enable ESP",
+    Default = false,
+    Callback = function(Value)
+        espEnabled = Value
+        if espEnabled then
+            updateESP()
+        else
+            for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+                if player.Character and player.Character:FindFirstChild("Highlight") then
+                    player.Character:FindFirstChild("Highlight"):Destroy()
+                end
+            end
+        end
+    end
+})
+
+-- === Misc Tab ===
+Tabs.Misc:AddToggle("Modify Hitboxes", {
+    Title = "Enable Hitbox Modification",
+    Default = false,
+    Callback = function(Value)
+        _G.Disabled = Value
+
+        game:GetService("RunService").RenderStepped:Connect(function()
+            if _G.Disabled then
+                for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+                    if player.Name ~= game.Players.LocalPlayer.Name then
+                        pcall(function()
+                            player.Character.Head.Size = Vector3.new(_G.HeadSize, _G.HeadSize, _G.HeadSize)
+                        end)
+                    end
+                end
+            end
+        end)
+    end
+})
+
+Tabs.Misc:AddSlider("Head Hitbox Size", {
+    Title = "Head Hitbox Size",
+    Description = "Adjust the size of the head hitbox",
+    Default = 15,
+    Min = 1,
+    Max = 50,
+    Rounding = 1,
+    Callback = function(Value)
+        _G.HeadSize = Value
+    end
+})
+
+-- SaveManager Integration
+SaveManager:SetLibrary(Fluent)
+SaveManager:SetFolder("FluentScriptHub/specific-game")
+SaveManager:BuildConfigSection(Tabs.Movement)
+SaveManager:LoadAutoloadConfig()
