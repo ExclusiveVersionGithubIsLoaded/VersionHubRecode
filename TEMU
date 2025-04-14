@@ -1,0 +1,702 @@
+local player = game.Players.LocalPlayer
+local gui = player:WaitForChild("PlayerGui")
+local TweenService = game:GetService("TweenService")
+
+local screenGui = Instance.new("ScreenGui", gui)
+screenGui.Name = "MegaTabMenu"
+screenGui.ResetOnSpawn = false
+
+local mainFrame = Instance.new("Frame", screenGui)
+mainFrame.Size = UDim2.new(0, 420, 0, 500)
+mainFrame.Position = UDim2.new(0.5, -210, 0.5, -250)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+mainFrame.BorderSizePixel = 0
+mainFrame.BackgroundTransparency = 1
+mainFrame.Active = true
+mainFrame.Draggable = true
+
+local corner = Instance.new("UICorner", mainFrame)
+corner.CornerRadius = UDim.new(0, 12)
+
+TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Quint), {
+	BackgroundTransparency = 0.05
+}):Play()
+
+-- Надпись сверху
+local title = Instance.new("TextLabel", mainFrame)
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Position = UDim2.new(0, 0, 0, -30)
+title.Text = "Version Hub"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 20
+title.TextColor3 = Color3.fromRGB(0, 180, 255)
+title.BackgroundTransparency = 1
+
+-- Вкладки
+local tabsHolder = Instance.new("Frame", mainFrame)
+tabsHolder.Size = UDim2.new(1, 0, 0, 45)
+tabsHolder.BackgroundTransparency = 1
+
+local tabsLayout = Instance.new("UIListLayout", tabsHolder)
+tabsLayout.FillDirection = Enum.FillDirection.Horizontal
+tabsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+tabsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+tabsLayout.Padding = UDim.new(0, 10)
+
+-- Контейнер для страниц
+local pagesHolder = Instance.new("Frame", mainFrame)
+pagesHolder.Size = UDim2.new(1, 0, 1, -55)
+pagesHolder.Position = UDim2.new(0, 0, 0, 50)
+pagesHolder.BackgroundTransparency = 1
+
+local pages = {}
+
+local function createTabButton(tabName)
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(0, 120, 0, 35)
+	btn.Text = tabName
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 16
+	btn.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+	btn.TextColor3 = Color3.fromRGB(200, 230, 255)
+	btn.AutoButtonColor = false
+
+	local uic = Instance.new("UICorner", btn)
+	uic.CornerRadius = UDim.new(0, 8)
+
+	btn.MouseEnter:Connect(function()
+		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 90)}):Play()
+	end)
+	btn.MouseLeave:Connect(function()
+		TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(40, 40, 60)}):Play()
+	end)
+
+	return btn
+end
+
+local function createPage(name)
+	local page = Instance.new("Frame", pagesHolder)
+	page.Name = name
+	page.Size = UDim2.new(1, 0, 1, 0)
+	page.BackgroundTransparency = 1
+	page.Visible = false
+
+	local layout = Instance.new("UIListLayout", page)
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Padding = UDim.new(0, 12)
+
+	local pad = Instance.new("UIPadding", page)
+	pad.PaddingTop = UDim.new(0, 10)
+	pad.PaddingLeft = UDim.new(0, 20)
+	pad.PaddingRight = UDim.new(0, 20)
+
+	pages[name] = page
+	return page
+end
+
+local function switchTo(tabName)
+	for name, page in pairs(pages) do
+		page.Visible = (name == tabName)
+	end
+end
+
+local function createButton(container, text, callback)
+	local btn = Instance.new("TextButton", container)
+	btn.Size = UDim2.new(1, 0, 0, 40)
+	btn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+	btn.Text = text
+	btn.TextColor3 = Color3.new(1, 1, 1)
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 18
+	btn.AutoButtonColor = false
+
+	local uicorner = Instance.new("UICorner", btn)
+	uicorner.CornerRadius = UDim.new(0, 10)
+
+	btn.MouseEnter:Connect(function()
+		TweenService:Create(btn, TweenInfo.new(0.2), {
+			BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+		}):Play()
+	end)
+	btn.MouseLeave:Connect(function()
+		TweenService:Create(btn, TweenInfo.new(0.2), {
+			BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+		}):Play()
+	end)
+
+	btn.MouseButton1Click:Connect(function()
+		if callback then
+			callback()
+		end
+	end)
+end
+
+local function createToggle(container, text, callback)
+	local holder = Instance.new("Frame", container)
+	holder.Size = UDim2.new(1, 0, 0, 40)
+	holder.BackgroundTransparency = 1
+
+	local label = Instance.new("TextLabel", holder)
+	label.Size = UDim2.new(0.7, 0, 1, 0)
+	label.Text = text
+	label.TextColor3 = Color3.fromRGB(255, 255, 255)
+	label.Font = Enum.Font.Gotham
+	label.TextSize = 16
+	label.BackgroundTransparency = 1
+	label.TextXAlignment = Enum.TextXAlignment.Left
+
+	local toggle = Instance.new("TextButton", holder)
+	toggle.Size = UDim2.new(0, 50, 0, 25)
+	toggle.Position = UDim2.new(1, -60, 0.5, -12)
+	toggle.BackgroundColor3 = Color3.fromRGB(40, 120, 200)
+	toggle.Text = ""
+	toggle.AutoButtonColor = false
+
+	local toggleCorner = Instance.new("UICorner", toggle)
+	toggleCorner.CornerRadius = UDim.new(1, 0)
+
+	local circle = Instance.new("Frame", toggle)
+	circle.Size = UDim2.new(0, 20, 0, 20)
+	circle.Position = UDim2.new(0, 3, 0.5, -10)
+	circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+
+	local circCorner = Instance.new("UICorner", circle)
+	circCorner.CornerRadius = UDim.new(1, 0)
+
+	local toggled = false
+	toggle.MouseButton1Click:Connect(function()
+		toggled = not toggled
+		local goal = toggled and UDim2.new(1, -23, 0.5, -10) or UDim2.new(0, 3, 0.5, -10)
+		local color = toggled and Color3.fromRGB(0, 255, 120) or Color3.fromRGB(255, 255, 255)
+		TweenService:Create(circle, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {
+			Position = goal,
+			BackgroundColor3 = color
+		}):Play()
+		if callback then callback(toggled) end
+	end)
+end
+
+-- 🔗 Пример функций
+local function RINGV2() local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local lp = Players.LocalPlayer
+local char = lp.Character or lp.CharacterAdded:Wait()
+local root = char:WaitForChild("HumanoidRootPart")
+
+-- 🔥 Рекламные фразы TEMU
+local phrases = {
+	"🔥 90% OFF 🔥",
+	"BLACK FRIDAY EVERYDAY",
+	"BUY 1 GET 7 FREE",
+	"FREE GIFT INSIDE 🎁",
+	"TEMU PREMIUM USER",
+	"😱 LIMITED TIME OFFER",
+	"🛍️ ADD TO CART NOW",
+	"💰 SAVE BIG ON TEMU"
+}
+
+-- Настройки
+local ringCount = #phrases -- столько, сколько фраз
+local radius = 4
+local rotationSpeed = 1
+local tiltAngle = math.rad(30)
+
+-- Папка для кольца
+local temuRing = Instance.new("Folder")
+temuRing.Name = "TEMUAdRing"
+temuRing.Parent = root
+
+-- Создание одного крутящегося рекламного блока
+local function createRingLabel(text)
+	local part = Instance.new("Part")
+	part.Anchored = true
+	part.CanCollide = false
+	part.Transparency = 1
+	part.Size = Vector3.new(4, 1, 0.1)
+	part.Parent = temuRing
+
+	local gui = Instance.new("BillboardGui")
+	gui.Size = UDim2.new(4, 0, 1, 0)
+	gui.Adornee = part
+	gui.AlwaysOnTop = true
+	gui.LightInfluence = 0.5
+	gui.MaxDistance = 100
+	gui.Parent = part
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Text = text
+	label.TextColor3 = Color3.fromRGB(255, 128, 0)
+	label.Font = Enum.Font.FredokaOne
+	label.TextScaled = true
+	label.Parent = gui
+
+	return part
+end
+
+-- Собираем кольцо из фраз
+local labels = {}
+for i, text in ipairs(phrases) do
+	local part = createRingLabel(text)
+	table.insert(labels, part)
+end
+
+-- Крутим кольцо
+RunService.RenderStepped:Connect(function()
+	local time = tick() * rotationSpeed
+	for i, part in ipairs(labels) do
+		local angle = (i / #labels) * math.pi * 2 + time
+		local x = math.cos(angle) * radius
+		local z = math.sin(angle) * radius
+		local y = math.sin(tiltAngle) * z
+
+		part.CFrame = root.CFrame:ToWorldSpace(CFrame.new(x, y, z))
+	end
+end) end
+
+
+
+local function SKIN() local Players = game:GetService("Players")
+local lp = Players.LocalPlayer
+local char = lp.Character or lp.CharacterAdded:Wait()
+
+-- Удаляем шмотки и аксессуары
+for _, item in ipairs(char:GetChildren()) do
+	if item:IsA("Accessory") or item:IsA("Shirt") or item:IsA("Pants") or item:IsA("ShirtGraphic") then
+		item:Destroy()
+	end
+end
+
+-- Надпись TEMU на одной стороне
+local function addTemuLabel(part)
+	-- Проверяем, не добавляли ли мы уже надпись
+	if part:FindFirstChildWhichIsA("SurfaceGui") then return end
+
+	local gui = Instance.new("SurfaceGui")
+	gui.Name = "TEMU_Label"
+	gui.Face = Enum.NormalId.Front
+	gui.AlwaysOnTop = false -- не видно сквозь стены
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = 50
+	gui.Parent = part
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Text = "TEMU"
+	label.TextScaled = true
+	label.TextColor3 = Color3.new(1, 1, 1)
+	label.Font = Enum.Font.FredokaOne
+	label.Parent = gui
+end
+
+-- Красим и вешаем надпись только на части тела
+for _, part in ipairs(char:GetChildren()) do
+	if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+		part.BrickColor = BrickColor.new("Bright orange")
+		addTemuLabel(part)
+	end
+end
+ end
+
+
+local function BOX() local Players = game:GetService("Players")
+local lp = Players.LocalPlayer
+local char = lp.Character or lp.CharacterAdded:Wait()
+local backpack = lp:WaitForChild("Backpack")
+
+-- создаём инструмент (Tool)
+local tool = Instance.new("Tool")
+tool.Name = "HeavyBox"
+tool.RequiresHandle = true
+tool.CanBeDropped = true
+
+-- создаём коробку
+local handle = Instance.new("Part")
+handle.Name = "Handle"
+handle.Size = Vector3.new(2.5, 2, 2)
+handle.BrickColor = BrickColor.new("Bright orange")
+handle.Material = Enum.Material.SmoothPlastic
+handle.Anchored = false
+handle.CanCollide = false
+handle.TopSurface = Enum.SurfaceType.Smooth
+handle.BottomSurface = Enum.SurfaceType.Smooth
+handle.Parent = tool
+
+-- новое расположение — прям между руками
+tool.Grip = CFrame.new(1.5, 1, -0) * CFrame.Angles(math.rad(0), 0, 0)
+
+tool.Parent = backpack end
+
+
+local function TUSER() local Players = game:GetService("Players")
+local lp = Players.LocalPlayer  -- Локальный игрок
+
+-- Функция для создания надписи над игроком
+local function createLabel(player, text)
+    local character = player.Character
+    if not character then return end
+
+    -- Создаем BillboardGui, который будет над головой игрока
+    local billBoard = Instance.new("BillboardGui")
+    billBoard.Adornee = character:WaitForChild("Head") -- располагать над головой
+    billBoard.Size = UDim2.new(0, 200, 0, 50)  -- размер надписи
+    billBoard.StudsOffset = Vector3.new(0, 3, 0)  -- отступ от головы
+    billBoard.Parent = character:WaitForChild("Head")
+
+    -- Создаем текстовую метку
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 1, 0)  -- размер надписи
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextScaled = true
+    label.TextColor3 = Color3.fromRGB(255, 223, 0)  -- золотой цвет
+    label.Font = Enum.Font.GothamBold
+    label.Parent = billBoard
+end
+
+-- Функция для создания надписи для локального игрока
+createLabel(lp, "TEMU Premium User")
+
+-- Функция для выбора случайного игрока на сервере (кроме локального игрока)
+local function getRandomPlayer()
+    local players = Players:GetPlayers()
+    local randomPlayer = nil
+
+    -- Ищем случайного игрока, который не является локальным
+    repeat
+        randomPlayer = players[math.random(1, #players)]
+    until randomPlayer ~= lp  -- проверяем, чтобы это не был локальный игрок
+
+    return randomPlayer
+end
+
+-- Выбираем случайного игрока и добавляем надпись про хаб
+local randomPlayer = getRandomPlayer()
+createLabel(randomPlayer, "Version Hub the best")
+ end
+
+
+local function Backpack() local Players = game:GetService("Players")
+local lp = Players.LocalPlayer
+local char = lp.Character or lp.CharacterAdded:Wait()
+local backpack = lp:WaitForChild("Backpack")
+
+-- создаём инструмент (Tool)
+local tool = Instance.new("Tool")
+tool.Name = "TemuPackage"
+tool.RequiresHandle = true
+tool.CanBeDropped = true
+
+-- создаём плоский пакет
+local handle = Instance.new("Part")
+handle.Name = "Handle"
+handle.Size = Vector3.new(2, 2, 1)
+handle.BrickColor = BrickColor.new("Bright orange")
+handle.Material = Enum.Material.SmoothPlastic
+handle.Anchored = false
+handle.CanCollide = false
+handle.TopSurface = Enum.SurfaceType.Smooth
+handle.BottomSurface = Enum.SurfaceType.Smooth
+handle.Parent = tool
+
+tool.Grip = CFrame.new(1.4, 0.5, -2.7) -- редактируй под себя
+
+-- функция для надписей
+local function addTemuLabel(surface)
+	local gui = Instance.new("SurfaceGui")
+	gui.Face = surface
+	gui.AlwaysOnTop = true
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = 50
+	gui.Parent = handle
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Text = "TEMU"
+	label.TextScaled = true
+	label.TextColor3 = Color3.new(1, 1, 1)
+	label.Font = Enum.Font.FredokaOne
+	label.Parent = gui
+end
+
+-- TEMU надписи на всех сторонах
+local surfaces = {
+	Enum.NormalId.Back,
+}
+
+for _, surface in ipairs(surfaces) do
+	addTemuLabel(surface)
+end
+
+-- 🧵 создаём 2 "верёвочки" с удлинённой дугой
+local function createString(offsetX)
+	-- Создаем несколько частей для верёвочки (дуга), но удлиняем
+	for i = 0, 10 do  -- увеличил количество частей для плавности дуги
+		local stringPart = Instance.new("Part")
+		stringPart.Size = Vector3.new(0.1, 0.1, 0.2)  -- увеличил длину каждой части
+		stringPart.BrickColor = BrickColor.Black()
+		stringPart.Material = Enum.Material.SmoothPlastic
+		stringPart.CanCollide = false
+		stringPart.Anchored = false
+		stringPart.Massless = true
+		stringPart.Name = "String"
+
+		-- Создаем WeldConstraint для крепления
+		local weld = Instance.new("WeldConstraint")
+		weld.Part0 = handle
+		weld.Part1 = stringPart
+		weld.Parent = stringPart
+
+		-- Применяем CFrame для корректного расположения каждой части
+		stringPart.CFrame = handle.CFrame * CFrame.new(offsetX, 0.35 + (i * 0.05), -0.9 + (i * 0.05))  -- регулируем отступ
+		stringPart.Parent = handle
+	end
+end
+
+-- две ручки: левая и правая
+createString(-0.9)
+createString(0.9)
+
+-- добавляем в инвентарь
+tool.Parent = backpack
+ end
+
+
+local function RINGV1() local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local lp = Players.LocalPlayer
+local char = lp.Character or lp.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+-- Список надписей (ауры)
+local auraParts = {}
+
+-- Создаём одну надпись и возвращаем её
+local function createAuraLabel(angleOffset)
+	local part = Instance.new("Part")
+	part.Size = Vector3.new(1, 1, 1)
+	part.Anchored = true
+	part.CanCollide = false
+	part.Transparency = 1
+	part.Name = "TEMUAura"
+	part.Parent = workspace
+
+	local gui = Instance.new("BillboardGui")
+	gui.Size = UDim2.new(4, 0, 1, 0)
+	gui.AlwaysOnTop = true
+	gui.LightInfluence = 0
+	gui.MaxDistance = 100
+	gui.Parent = part
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Text = "TEMU"
+	label.TextScaled = true
+	label.TextColor3 = Color3.fromRGB(255, 130, 0)
+	label.Font = Enum.Font.FredokaOne
+	label.Parent = gui
+
+	table.insert(auraParts, { part = part, angle = angleOffset })
+end
+
+-- Создаём круг из надписей вокруг игрока
+for i = 1, 8 do
+	createAuraLabel((i / 8) * math.pi * 2)
+end
+
+-- Обновляем положение ауры
+RunService.RenderStepped:Connect(function(dt)
+	local time = tick()
+	for _, aura in ipairs(auraParts) do
+		local radius = 5
+		local height = 2
+		local angle = aura.angle + time * 1 -- можно менять скорость
+
+		local x = math.cos(angle) * radius
+		local z = math.sin(angle) * radius
+		local y = math.sin(angle * 2) * 0.5 + height
+
+		aura.part.Position = hrp.Position + Vector3.new(x, y, z)
+	end
+end)
+ end
+
+
+local function Jump() local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local lp = Players.LocalPlayer
+local char = lp.Character or lp.CharacterAdded:Wait()
+local humanoid = char:WaitForChild("Humanoid")
+local root = char:WaitForChild("HumanoidRootPart")
+
+local debounce = false
+
+local function createBuyNowText()
+	local part = Instance.new("Part")
+	part.Anchored = true
+	part.CanCollide = false
+	part.Size = Vector3.new(3, 0.5, 1)
+	part.CFrame = root.CFrame * CFrame.new(0, -3, 0)
+	part.Transparency = 1
+	part.Parent = workspace
+
+	local gui = Instance.new("BillboardGui")
+	gui.Size = UDim2.new(5, 0, 2, 0)
+	gui.Adornee = part
+	gui.AlwaysOnTop = true
+	gui.LightInfluence = 0
+	gui.Parent = part
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Text = "BUY NOW!"
+	label.TextColor3 = Color3.fromRGB(255, 85, 0)
+	label.TextStrokeTransparency = 0.2
+	label.Font = Enum.Font.FredokaOne
+	label.TextScaled = true
+	label.Parent = gui
+
+	game.Debris:AddItem(part, 0.8)
+end
+
+humanoid.StateChanged:Connect(function(old, new)
+	if new == Enum.HumanoidStateType.Jumping and not debounce then
+		debounce = true
+		createBuyNowText()
+		wait(0.5)
+		debounce = false
+	end
+end)
+ end
+
+
+local function Trail() local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Debris = game:GetService("Debris")
+local lp = Players.LocalPlayer
+local char = lp.Character or lp.CharacterAdded:Wait()
+local root = char:WaitForChild("HumanoidRootPart")
+
+-- 💨 Удаляем старые трейлы
+for _, v in ipairs(root:GetChildren()) do
+	if v:IsA("Trail") then
+		v:Destroy()
+	end
+end
+
+-- 📍Создаём Attachment'ы для трейла
+local att0 = Instance.new("Attachment", root)
+att0.Position = Vector3.new(0, 1.5, 0)
+
+local att1 = Instance.new("Attachment", root)
+att1.Position = Vector3.new(0, -1.5, 0)
+
+-- 🧡 Создаём сам Trail
+local trail = Instance.new("Trail")
+trail.Attachment0 = att0
+trail.Attachment1 = att1
+trail.Color = ColorSequence.new(Color3.fromRGB(255, 128, 0))
+trail.Lifetime = 0.5
+trail.MinLength = 0.1
+trail.LightEmission = 1
+trail.Name = "TEMUTrail"
+trail.Transparency = NumberSequence.new({
+	NumberSequenceKeypoint.new(0, 0),
+	NumberSequenceKeypoint.new(1, 1)
+})
+trail.WidthScale = NumberSequence.new(0.6)
+trail.Parent = root
+
+-- ✨ Темный парящий след из текста TEMU
+local interval = 0.5
+local textLifetime = 0.5
+local offset = Vector3.new(0, 0, -1)
+local lastTime = 0
+
+local function createTemuLabel()
+	local part = Instance.new("Part")
+	part.Anchored = true
+	part.CanCollide = false
+	part.Size = Vector3.new(2, 0.5, 0.1)
+	part.CFrame = root.CFrame:ToWorldSpace(CFrame.new(offset))
+	part.Transparency = 1
+	part.Parent = workspace
+
+	local gui = Instance.new("BillboardGui")
+	gui.Size = UDim2.new(3, 0, 1, 0)
+	gui.Adornee = part
+	gui.AlwaysOnTop = true
+	gui.LightInfluence = 0
+	gui.Parent = part
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Text = "TEMU"
+	label.TextColor3 = Color3.fromRGB(255, 128, 0)
+	label.Font = Enum.Font.FredokaOne
+	label.TextScaled = true
+	label.Parent = gui
+
+	Debris:AddItem(part, textLifetime)
+end
+
+-- 🔁 Постоянный рендер для надписей
+RunService.RenderStepped:Connect(function()
+	local hum = char:FindFirstChildOfClass("Humanoid")
+	if hum and hum.MoveDirection.Magnitude > 0 then
+		local now = tick()
+		if now - lastTime >= interval then
+			createTemuLabel()
+			lastTime = now
+		end
+	end
+end)
+ end
+
+
+-- 📁 Конфиг
+local tabs = {
+	{
+		Name = "TEMU Scripts",
+		Buttons = {
+			["TEMU Ring V2"] = RINGV2,
+			["TEMU Skin"] = SKIN,
+            ["TEMU Box"] = BOX,
+			["TEMU User"] = TUSER,
+            ["TEMU Backpack"] = Backpack,
+            ["TEMU Ring V1"] = RINGV1,
+            ["TEMU Jump Effect"] = Jump,
+            ["TEMU Trail"] = Trail
+		},
+		Toggles = {
+		}
+	},
+}
+
+-- 🧠 Создание вкладок
+for _, tabData in pairs(tabs) do
+	local tabBtn = createTabButton(tabData.Name)
+	tabBtn.Parent = tabsHolder
+
+	local page = createPage(tabData.Name)
+
+	for btnText, func in pairs(tabData.Buttons or {}) do
+		createButton(page, btnText, func)
+	end
+
+	for toggleText, func in pairs(tabData.Toggles or {}) do
+		createToggle(page, toggleText, func)
+	end
+
+	tabBtn.MouseButton1Click:Connect(function()
+		switchTo(tabData.Name)
+	end)
+end
+
+switchTo(tabs[1].Name)
